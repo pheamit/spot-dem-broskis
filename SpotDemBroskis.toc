@@ -1,0 +1,12 @@
+## Interface: 80000
+## X-Max-Interface: 80000
+## X-Min-Interface: 70000
+
+## Title: SpotDemBroskis
+
+## Notes: Easily spot your group members in BGs
+
+## Author: miturtow
+## Version: 1.0.0
+
+Core.lua

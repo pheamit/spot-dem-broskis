@@ -8,5 +8,6 @@
 
 ## Author: miturtow
 ## Version: 1.0.0
+## SavedVariablesPerCharacter: GDump
 
 Core.lua

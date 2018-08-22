@@ -7,7 +7,6 @@ local events = {
     ["load"] = "ADDON_LOADED"
 }
 local icons = {
-    ["friend"] = 645193,
     ["DEMONHUNTER"] = 236415,
     ["DRUID"] = 625999,
     ["HUNTER"] = 626000,
@@ -27,16 +26,16 @@ local icons = {
     UnitIsPlayer(unit)
     UnitInPArty(unit)
 ]]
+
 local guidSet = {}
 local idSet = {}
 
 local sdb = CreateFrame("Frame")
-
 local _G = _G
 local GetNamePlateForUnit = _G.C_NamePlate.GetNamePlateForUnit --get nameplate from global UI variable _G
-local iconFrame, iconTexture
 
 local function addIcon(parentFrame, icon)
+    local iconFrame, iconTexture
     iconFrame = CreateFrame("Frame", nil, parentFrame)
     iconFrame:SetFrameStrata("BACKGROUND")
     iconFrame:SetWidth(32)
@@ -45,41 +44,33 @@ local function addIcon(parentFrame, icon)
     iconTexture = iconFrame:CreateTexture(nil, "BACKGROUND")
     iconTexture:SetTexture(icons[icon])
     iconTexture:SetAllPoints(iconFrame)
-    iconFrame.texture = iconTexture
 
+    iconFrame.texture = iconTexture
     iconFrame:SetPoint("TOPLEFT", 10, 10)
     iconFrame:Show()
 end
 
 local function removeIcon(parentFrame)
-    iconFrame:Hide()
+    parentFrame:Hide()
 end
 
-local function nameplateUnitAdded(self, event, id)
-    local namePlate = GetNamePlateForUnit(id)
+local function nameplateUnitAdded(self, event, unit)
+    local namePlate = GetNamePlateForUnit(unit)
     local unit_frame = namePlate.UnitFrame
-    local unitGUID = UnitGUID(id)
+    local unitGUID = UnitGUID(unit)
     local separator = ", "
     local className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID(unitGUID)
     if event == events["npu_added"] then
-        if classId == "WARRIOR" then
-            print(name .. separator .. classId .. separator .. id .. " added!")
-            idSet[id] = name
+        if classId == "WARRIOR" and not idSet:contains(unit) then
+            print(name .. separator .. classId .. separator .. unit .. " added!")
+            idSet[unit] = name
             addIcon(namePlate, classId)
-        -- else
-        --     namePlate.UnitFrame:Hide()
         end
-    elseif event == events["npu_removed"] and idSet:contains(id) then
+    elseif event == events["npu_removed"] and idSet:contains(unit) then
         print("Was saved as " .. idSet[id])
         print("Was removed as " .. name)
-        idSet:remove(id)
+        idSet:remove(unit)
         removeIcon(namePlate)
-    end
-end
-
-local function party(self, event)
-    if event == events["gru"] then
-        print(event)
     end
 end
 
@@ -104,11 +95,10 @@ function idSet:remove(key)
     idSet[key] = nil
 end
 
-
 -- Registering for a table of events
 
 for k, v in pairs(events) do
     sdb:RegisterEvent(v)
 end
 sdb:SetScript("OnEvent", nameplateUnitAdded)
-sdb:SetScript("OnEvent", showFriendlyNameplates)
+-- sdb:SetScript("OnEvent", showFriendlyNameplates)

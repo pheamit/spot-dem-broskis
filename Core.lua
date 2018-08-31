@@ -1,4 +1,4 @@
-local addonName = ...
+local addonName = "SDB"
 
 local iconKey = addonName .. "Icon"
 
@@ -20,28 +20,47 @@ local iconTexture = {
 }
 
 local frame = CreateFrame("Frame")
- 
-frame:SetScript("OnEvent", function(self, event, unit)
-    local namePlate = GetNamePlateForUnit(unit)
-    if event == "NAME_PLATE_UNIT_ADDED" and UnitIsFriend("player", unit) then
-        local _, class = UnitClass(unit)
-        if iconTexture[class] then
-            local icon = namePlate[iconKey]
-            if not icon then
-                icon = namePlate:CreateTexture(nil, "OVERLAY")
-                icon:SetPoint('TOPLEFT', 10, 10)
-                icon:SetSize(32, 32)
-                namePlate[iconKey] = icon
+
+frame:SetScript(
+    "OnEvent",
+    function(self, event, unit)
+        if event == "NAME_PLATE_UNIT_ADDED" and UnitInParty(unit) and unitIsValid(unit) then
+            local namePlate = GetNamePlateForUnit(unit)
+            local _, class = UnitClass(unit)
+            local guid = UnitGUID(unit)
+            if iconTexture[class] then
+                local icon = namePlate[iconKey]
+                if not icon then
+                    icon = namePlate:CreateTexture(nil, "OVERLAY")
+                    icon:SetPoint("TOPLEFT", 10, 10)
+                    icon:SetSize(32, 32)
+                    namePlate[iconKey] = icon
+                end
+                icon:SetTexture(iconTexture[class])
+                icon:Show()
             end
-            icon:SetTexture(iconTexture[class])
-            icon:Show()
-            return
+        elseif event == "PLAYER_ENTERING_WORLD" then
+            print(UnitName("player") .. " entered world!")
+            print("Hiding friendly nameplates.")
+            SetCVar("nameplateShowFriends", 0)
+            SetCVar("nameplateShowAll", 0)
+        elseif event == "PLAYER_ENTERING_BATTLEGROUND" then
+            print(UnitName("player") .. " entered battleground!")
+            print("Displaying friendly nameplates.")
+            SetCVar("nameplateShowFriends", 1)
+            SetCVar("nameplateShowAll", 1)
+        elseif unitIsValid(unit) then
+            GetNamePlateForUnit(unit):Hide()
         end
     end
-    if namePlate[iconKey] then
-        namePlate[iconKey]:Hide()
-    end
-end)
+)
+
+local function unitIsValid(unit)
+    return UnitIsFriend(unit) and UnitIsPlayer(unit)--[[  and UnitInBattleground(unit) ]]
+end
+
 
 frame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 frame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+frame:RegisterEvent("PLAYER_ENTERING_BATTLEGROUND")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
